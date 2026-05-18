@@ -452,7 +452,7 @@ const getBadgeColor = (name: string, opacity: number) => {
     hash = name.charCodeAt(i) + ((hash << 5) - hash)
   }
   const colorIndex = Math.abs(hash) % colors.length
-  const color = colors[colorIndex]
+  const color = colors[colorIndex] || { bg: '#8b5cf6', hex: '#8b5cf6' }
   
   if (opacity === 1) return color.hex
   

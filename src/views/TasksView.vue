@@ -146,7 +146,8 @@ const getBadgeColor = (name: string, opacity: number) => {
     hash = name.charCodeAt(i) + ((hash << 5) - hash);
   }
   const colorIndex = Math.abs(hash) % colors.length
-  const hex = colors[colorIndex].hex
+  const color = colors[colorIndex] || { bg: '#8b5cf6', hex: '#8b5cf6' }
+  const hex = color.hex
   
   // Convert hex to rgb for rgba
   const r = parseInt(hex.slice(1, 3), 16)

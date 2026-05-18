@@ -39,5 +39,15 @@ export const userService = {
         Authorization: authHeader
       }
     });
+  },
+
+  changeFullName(authHeader: string, id: number, dto: { fullname: string }) {
+    const apiUrl = import.meta.env.VITE_API_ENDPOINT || 'http://localhost:8080/to-do-list';
+    
+    return axios.put(`${apiUrl}/users/changeFullName/${id}`, dto, {
+      headers: {
+        Authorization: authHeader
+      }
+    });
   }
 }
