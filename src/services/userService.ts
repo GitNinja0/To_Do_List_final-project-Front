@@ -49,5 +49,35 @@ export const userService = {
         Authorization: authHeader
       }
     });
+  },
+
+  updateProfile(authHeader: string, dto: { fullname: string, email: string }) {
+    const apiUrl = import.meta.env.VITE_API_ENDPOINT || 'http://localhost:8080/to-do-list';
+    
+    return axios.put(`${apiUrl}/user/profile`, dto, {
+      headers: {
+        Authorization: authHeader
+      }
+    });
+  },
+
+  changePassword(authHeader: string, id: number, dto: any) {
+    const apiUrl = import.meta.env.VITE_API_ENDPOINT || 'http://localhost:8080/to-do-list';
+    
+    return axios.put(`${apiUrl}/users/changePassword/${id}`, dto, {
+      headers: {
+        Authorization: authHeader
+      }
+    });
+  },
+
+  changeRole(authHeader: string, id: number, dto: any) {
+    const apiUrl = import.meta.env.VITE_API_ENDPOINT || 'http://localhost:8080/to-do-list';
+    
+    return axios.put(`${apiUrl}/roles/changeRole/${id}`, dto, {
+      headers: {
+        Authorization: authHeader
+      }
+    });
   }
 }
