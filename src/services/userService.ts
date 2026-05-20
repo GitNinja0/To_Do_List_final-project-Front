@@ -1,13 +1,14 @@
 import axios from 'axios'
 
 export const userService = {
-  getAllUsers(authHeader: string) {
+  getAllUsers(authHeader: string, search: string = '', role: string = '', page: number = 0, size: number = 6) {
     const apiUrl = import.meta.env.VITE_API_ENDPOINT || 'http://localhost:8080/to-do-list';
     
     return axios.get(`${apiUrl}/users/`, {
       headers: {
         Authorization: authHeader
-      }
+      },
+      params: { search, role, page, size }
     });
   },
 

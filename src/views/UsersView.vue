@@ -28,13 +28,13 @@
           @delete="confirmDeleteUser"
         />
 
-        <div v-if="filteredUsers.length > 0" class="pagination-bar">
+        <div v-if="totalElements > 0" class="pagination-bar">
           <span class="pagination-info">
-            Mostrando {{ paginationStart + 1 }} a {{ Math.min(paginationEnd, filteredUsers.length) }} de {{ filteredUsers.length }} usuarios
+            Mostrando {{ paginationStart + 1 }} a {{ Math.min(paginationEnd, totalElements) }} de {{ totalElements }} usuarios
           </span>
           <div class="pagination-actions">
             <button class="pagination-btn" :disabled="currentPage === 1" @click="currentPage--">Anterior</button>
-            <button class="pagination-btn" :disabled="paginationEnd >= filteredUsers.length" @click="currentPage++">Siguiente</button>
+            <button class="pagination-btn" :disabled="paginationEnd >= totalElements" @click="currentPage++">Siguiente</button>
           </div>
         </div>
       </div>
@@ -61,7 +61,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import Sidebar from '@/components/Sidebar.vue'
 import PageHeader from '@/components/shared/PageHeader.vue'
 import UsersFiltersBar from '@/components/users/UsersFiltersBar.vue'
@@ -80,6 +80,7 @@ const searchQuery = ref('')
 const selectedRoleFilter = ref('')
 const currentPage = ref(1)
 const itemsPerPage = 6
+const totalElements = ref(0)
 const showEditModal = ref(false)
 const showAddModal = ref(false)
 const selectedUser = ref<any>(null)
@@ -91,8 +92,15 @@ const userToDelete = ref<any>(null)
 const fetchUsers = async () => {
   loading.value = true
   try {
-    const response = await userService.getAllUsers(authStore.authHeader)
-    users.value = response.data
+    const response = await userService.getAllUsers(
+      authStore.authHeader, 
+      searchQuery.value, 
+      selectedRoleFilter.value, 
+      currentPage.value - 1, 
+      itemsPerPage
+    )
+    users.value = response.data.content
+    totalElements.value = response.data.totalElements
   } catch (e) { console.error('Error fetching users:', e) }
   finally { loading.value = false }
 }
@@ -105,20 +113,18 @@ const getPrimaryRole = (user: any): string => {
   return 'USER'
 }
 
-const filteredUsers = computed(() => users.value.filter(user => {
-  const text = searchQuery.value.toLowerCase()
-  const matchesText =
-    (user.username || '').toLowerCase().includes(text) ||
-    (user.fullname || '').toLowerCase().includes(text) ||
-    (user.email || '').toLowerCase().includes(text)
-  if (!matchesText) return false
-  if (!selectedRoleFilter.value) return true
-  return (user.roles || []).some((r: any) => (r.name || '').toUpperCase().includes(selectedRoleFilter.value))
-}))
-
 const paginationStart = computed(() => (currentPage.value - 1) * itemsPerPage)
 const paginationEnd = computed(() => currentPage.value * itemsPerPage)
-const paginatedUsers = computed(() => filteredUsers.value.slice(paginationStart.value, paginationEnd.value))
+const paginatedUsers = computed(() => users.value)
+
+watch([searchQuery, selectedRoleFilter], () => {
+  currentPage.value = 1
+  fetchUsers()
+})
+
+watch(currentPage, () => {
+  fetchUsers()
+})
 
 const openEditModal = (user: any) => {
   selectedUser.value = user

@@ -1,48 +1,44 @@
-# to_do_list_final-project-front
+# To-Do List Frontend (Vue 3)
 
-This template should help get you started developing with Vue 3 in Vite.
+Este es el repositorio frontend de la aplicación To-Do List. Consiste en una SPA (Single Page Application) moderna, reactiva y optimizada para la gestión de tareas, categorías, etiquetas y usuarios.
 
-## Recommended IDE Setup
+## Arquitectura y Tecnologías
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+- **Framework**: Vue 3 (Composition API & `<script setup>`)
+- **Lenguaje**: TypeScript
+- **Bundler**: Vite (para compilación súper rápida y HMR)
+- **Estado Global**: Pinia (gestión de autenticación y variables globales)
+- **Routing**: Vue Router (con Lazy Loading para optimizar el peso inicial de la app)
+- **Peticiones HTTP**: Axios con interceptores y headers de autorización
+- **Estilos**: Vanilla CSS puro con variables y componentes reutilizables (sin frameworks externos como Tailwind, para máximo control)
 
-## Recommended Browser Setup
+## Estructura Principal
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+- `src/views/`: Pantallas principales de la app (Dashboard, Tareas, Calendario, Gestión de Usuarios, Configuración/Perfil, Login).
+- `src/components/`: Componentes modulares. Dividido lógicamente en subcarpetas (`tasks`, `users`, `categories`, `shared`) para mayor mantenibilidad.
+- `src/services/`: Capa de integración que encapsula todas las llamadas a la API REST (Backend). Incluye manejo de filtros y paginación del lado del servidor.
+- `src/stores/`: Lógica de Pinia para almacenar el JWT (`authHeader`), el nombre de usuario y los roles.
 
-## Type Support for `.vue` Imports in TS
+## Ejecución Local
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
+1. Instala las dependencias:
+   ```bash
+   npm install
+   ```
 
-## Customize configuration
+2. Arranca el servidor de desarrollo:
+   ```bash
+   npm run dev
+   ```
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+3. El proyecto estará disponible en `http://localhost:5173`. Asegúrate de tener el backend corriendo en el puerto `8080` (configurado mediante variables de entorno).
 
-## Project Setup
+## Compilación para Producción
 
-```sh
-npm install
-```
+Para compilar el proyecto de cara a un despliegue estático (por ejemplo, en Nginx o Vercel):
 
-### Compile and Hot-Reload for Development
-
-```sh
-npm run dev
-```
-
-### Type-Check, Compile and Minify for Production
-
-```sh
+```bash
 npm run build
 ```
 
-### Run Unit Tests with [Vitest](https://vitest.dev/)
-
-```sh
-npm run test:unit
-```
+Esto generará la carpeta `dist/` con todos los assets minimizados.
