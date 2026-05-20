@@ -11,6 +11,16 @@ export const taskService = {
     });
   },
 
+  getTaskById(authHeader: string, id: number) {
+    const apiUrl = import.meta.env.VITE_API_ENDPOINT || 'http://localhost:8080/to-do-list';
+    
+    return axios.get(`${apiUrl}/task/${id}`, {
+      headers: {
+        Authorization: authHeader
+      }
+    });
+  },
+
   searchTasks(authHeader: string, params: any) {
     const apiUrl = import.meta.env.VITE_API_ENDPOINT || 'http://localhost:8080/to-do-list';
     

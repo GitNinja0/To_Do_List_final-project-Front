@@ -11,6 +11,16 @@ export const categoryService = {
     });
   },
 
+  getManagerCategories(authHeader: string) {
+    const apiUrl = import.meta.env.VITE_API_ENDPOINT || 'http://localhost:8080/to-do-list';
+    
+    return axios.get(`${apiUrl}/manager/categories`, {
+      headers: {
+        Authorization: authHeader
+      }
+    });
+  },
+
   createCategory(authHeader: string, dto: { name: string }) {
     const apiUrl = import.meta.env.VITE_API_ENDPOINT || 'http://localhost:8080/to-do-list';
     

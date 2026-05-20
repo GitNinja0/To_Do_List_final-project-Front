@@ -51,7 +51,7 @@ export const userService = {
     });
   },
 
-  updateProfile(authHeader: string, dto: { fullname: string, email: string }) {
+  updateProfile(authHeader: string, dto: any) {
     const apiUrl = import.meta.env.VITE_API_ENDPOINT || 'http://localhost:8080/to-do-list';
     
     return axios.put(`${apiUrl}/user/profile`, dto, {
