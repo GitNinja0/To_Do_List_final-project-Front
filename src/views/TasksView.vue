@@ -18,27 +18,21 @@
 
         <TaskFiltersBar v-model="searchQuery" placeholder="Buscar tareas..." @update:modelValue="debouncedSearch">
           <template #filters>
-            <button class="dropdown-btn">
-              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-              Categoría
-              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </button>
-            <button class="dropdown-btn">
-              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
-              Etiquetas
-              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </button>
-            <button class="dropdown-btn">
-              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
-              Estado
-              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </button>
+            <div class="filter-dropdown">
+              <CustomSelect v-model="filterCategory" :options="categoryOptions" />
+            </div>
+            <div class="filter-dropdown">
+              <CustomSelect v-model="filterTag" :options="tagOptions" />
+            </div>
+            <div class="filter-dropdown">
+              <CustomSelect v-model="filterStatus" :options="statusOptions" />
+            </div>
           </template>
         </TaskFiltersBar>
 
-        <div class="tasks-list" v-if="tasks.length > 0">
+        <div class="tasks-list" v-if="filteredTasks.length > 0">
           <TaskRow
-            v-for="task in tasks"
+            v-for="task in filteredTasks"
             :key="task.id"
             :task="task"
             @edit="openEditModal"
@@ -46,7 +40,7 @@
           />
         </div>
 
-        <EmptyState v-else message="No se encontraron tareas." />
+        <EmptyState v-else message="No se encontraron tareas con los filtros seleccionados." />
 
         <TaskModal :isOpen="isModalOpen" :task="selectedTask" @close="closeModal" @saved="fetchTasks" />
       </div>
@@ -55,21 +49,71 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import Sidebar from '@/components/Sidebar.vue'
 import TaskModal from '@/components/TaskModal.vue'
 import PageHeader from '@/components/shared/PageHeader.vue'
 import EmptyState from '@/components/shared/EmptyState.vue'
 import TaskRow from '@/components/tasks/TaskRow.vue'
 import TaskFiltersBar from '@/components/tasks/TaskFiltersBar.vue'
+import CustomSelect from '@/components/shared/CustomSelect.vue'
 import { useAuthStore } from '@/stores/auth'
 import { taskService } from '@/services/taskService'
+import { tagService } from '@/services/tagService'
+import axios from 'axios'
 
 const authStore = useAuthStore()
 const tasks = ref<any[]>([])
 const searchQuery = ref('')
 const isModalOpen = ref(false)
 const selectedTask = ref<any>(null)
+
+// Filtros
+const filterCategory = ref<number | 'all'>('all')
+const filterTag = ref<number | 'all'>('all')
+const filterStatus = ref<string>('all')
+
+const categories = ref<any[]>([])
+const tags = ref<any[]>([])
+
+const categoryOptions = computed(() => [
+  { value: 'all', label: 'Todas las Categorías' },
+  { value: 'none', label: 'Sin Categoría' },
+  ...categories.value.map(c => ({ value: c.id, label: c.name }))
+])
+
+const tagOptions = computed(() => [
+  { value: 'all', label: 'Todas las Etiquetas' },
+  ...tags.value.map(t => ({ value: t.id, label: t.name }))
+])
+
+const statusOptions = [
+  { value: 'all', label: 'Todos los Estados' },
+  { value: 'pending', label: 'Pendiente' },
+  { value: 'completed', label: 'Completado' }
+]
+
+const filteredTasks = computed(() => {
+  return tasks.value.filter(task => {
+    let matchCat = true
+    if (filterCategory.value === 'none') {
+      matchCat = !task.category
+    } else if (filterCategory.value !== 'all') {
+      matchCat = task.category?.id === filterCategory.value
+    }
+    
+    let matchTag = true
+    if (filterTag.value !== 'all') {
+      matchTag = task.tags && task.tags.some((t: any) => t.id === filterTag.value)
+    }
+    
+    let matchStatus = true
+    if (filterStatus.value === 'pending') matchStatus = !task.completed
+    if (filterStatus.value === 'completed') matchStatus = task.completed
+    
+    return matchCat && matchTag && matchStatus
+  })
+})
 
 const openCreateModal = () => { selectedTask.value = null; isModalOpen.value = true }
 const openEditModal = (task: any) => { selectedTask.value = task; isModalOpen.value = true }
@@ -85,6 +129,21 @@ const fetchTasks = async () => {
     }
   } catch (error) {
     console.error('Error fetching tasks:', error)
+  }
+}
+
+const fetchFilters = async () => {
+  try {
+    if (!authStore.authHeader) return
+    const apiUrl = import.meta.env.VITE_API_ENDPOINT || 'http://localhost:8080/to-do-list'
+    const [catRes, tagRes] = await Promise.all([
+      axios.get(`${apiUrl}/categories`, { headers: { Authorization: authStore.authHeader } }),
+      tagService.getAllTags(authStore.authHeader)
+    ])
+    categories.value = catRes.data
+    tags.value = tagRes.data
+  } catch (e) {
+    console.error('Error fetching filters data:', e)
   }
 }
 
@@ -111,7 +170,10 @@ const toggleTaskStatus = async (task: any) => {
   }
 }
 
-onMounted(fetchTasks)
+onMounted(() => {
+  fetchTasks()
+  fetchFilters()
+})
 </script>
 
 <style scoped>
@@ -121,22 +183,13 @@ onMounted(fetchTasks)
   gap: 12px;
 }
 
-.dropdown-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background-color: #1e1e20;
-  color: #a0a0a5;
-  border: 1px solid #2c2c30;
-  border-radius: 8px;
-  padding: 0 16px;
-  height: 44px;
-  font-size: 14px;
-  cursor: pointer;
+.filter-dropdown {
+  min-width: 170px;
 }
-.dropdown-btn:hover { background-color: #27272a; color: #e4e4e7; }
 
 @media (max-width: 520px) {
-  .dropdown-btn { padding: 0 12px; justify-content: center; width: 100%; }
+  .filter-dropdown {
+    width: 100%;
+  }
 }
 </style>

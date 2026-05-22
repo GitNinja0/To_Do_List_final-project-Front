@@ -52,6 +52,16 @@ const router = createRouter({
       name: 'settings',
       component: () => import('@/views/SettingsView.vue'),
       meta: { requiresAuth: true }
+    },
+    {
+      path: '/403',
+      name: 'forbidden',
+      component: () => import('@/views/errors/ForbiddenView.vue')
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: () => import('@/views/errors/NotFoundView.vue')
     }
   ],
 })
@@ -68,7 +78,7 @@ router.beforeEach((to, from, next) => {
     const rolesStr = authStore.roles || ''
     const isAdmin = rolesStr.toUpperCase().includes('ADMIN')
     if (!isAdmin) {
-      next('/')
+      next('/403')
       return
     }
   }
