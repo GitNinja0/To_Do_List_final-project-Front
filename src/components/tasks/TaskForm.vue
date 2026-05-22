@@ -212,8 +212,8 @@ const parseDateSafely = (val: any) => {
 const form = ref({
   title: '',
   description: '',
-  createdAt: props.defaultDate || formatDateISO(new Date()),
-  deadline: props.defaultDate || formatDateISO(new Date()),
+  createdAt: (props.defaultDate || formatDateISO(new Date())) as string,
+  deadline: (props.defaultDate || formatDateISO(new Date())) as string,
   priority: 'Media',
   estimateHours: 1,
   categoryId: null as number | null,
@@ -226,8 +226,8 @@ const resetForm = () => {
   form.value = {
     title: '',
     description: '',
-    createdAt: props.defaultDate || formatDateISO(new Date()),
-    deadline: props.defaultDate || formatDateISO(new Date()),
+    createdAt: (props.defaultDate || formatDateISO(new Date())) as string,
+    deadline: (props.defaultDate || formatDateISO(new Date())) as string,
     priority: 'Media',
     estimateHours: 1,
     categoryId: null,
@@ -242,8 +242,8 @@ watch(() => props.task, (newTask) => {
     form.value = {
       title: newTask.title || '',
       description: newTask.description || '',
-      createdAt: parseDateSafely(newTask.createdAt),
-      deadline: parseDateSafely(newTask.deadline || newTask.expirationDate),
+      createdAt: parseDateSafely(newTask.createdAt) as string,
+      deadline: parseDateSafely(newTask.deadline || newTask.expirationDate) as string,
       priority: newTask.priority || 'Media',
       estimateHours: newTask.estimateHours || 1,
       categoryId: newTask.category?.id || null,

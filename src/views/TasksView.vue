@@ -69,7 +69,7 @@ const isModalOpen = ref(false)
 const selectedTask = ref<any>(null)
 
 // Filtros
-const filterCategory = ref<number | 'all'>('all')
+const filterCategory = ref<number | 'all' | 'none'>('all')
 const filterTag = ref<number | 'all'>('all')
 const filterStatus = ref<string>('all')
 
